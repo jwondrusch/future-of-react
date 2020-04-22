@@ -204,7 +204,7 @@ Note:
 
 ---
 
-## ~UX~ Dev Problems
+## <s>UX</s> Dev Problems
 
 Note:
 - React is out of the loop on data fetching
