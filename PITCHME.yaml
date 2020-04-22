@@ -46,7 +46,7 @@ layout : center
 # Footnote Setting
 # Doc: https://gitpitch.com/docs/settings/footnote
 #
-footnote : "TypeScript in the Field: Magic or Menace?"
+footnote : "The Future of React"
 
 #
 # Published Setting
@@ -58,8 +58,8 @@ published : true
 # Twitter Card Settings [Pro Only]
 # Doc: https://gitpitch.com/docs/settings/twitter-card
 #
-title : "TypeScript in the Field: Magic or Menace?"
-description : "A short tutorial introducing GitPitch Markdown Presentations for Developers."
+title : "The Future of React"
+description : ""
 thumbnail :
 
 # PITCHME-DOT-YAML-SETTINGS-THEME-BUILDER-GENERATED-START
