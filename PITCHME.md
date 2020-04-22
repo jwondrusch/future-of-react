@@ -3,15 +3,74 @@
 
 ---
 
-## Latest Features
+## The Last Few Years
+
+- Fiber
+- Functional Components
+- Hooks
+
+Note:
+- Fiber: New algorithm, completely internal, reduced roadblocks in developing react
+- Functional Components: Removed lifecycle methods, BUT made components easier to test, to reason about, and have better performance.
+- Hooks: Re-connecting React features w/o classes. useEffect, useState, useContext, useReducer, useMemo, useRef
 
 ---
 
-![IMAGE](assets/img/concurrent-mode.png)
+## The Real Reason You're Here
+
+### Looking Forward
 
 ---
 
-## Who This Is For
+## The Real Reason You're Here
+
+### Will I need to rewrite my app... again?
+
+---
+
+# The Goal
+
+> "Apps should start fast and stay fast, regardless of device or network speed"
+
+Note:
+- True for FB scale or mom and pop scale
+- 
+
+---
+
+![IMAGE](assets/img/rt-performance.png)
+
+Note:
+- These are real issues
+
+---
+
+## Two Major Features
+
+---
+
+## Two Major Features
+
+### 1. Concurrent Mode
+
+Note:
+- Current lifecycle is data driven.
+- Async is a pain.
+- "In Concurrent Mode, React can work on several state updates concurrently."
+
+---
+
+## Two Major Features
+
+### 2. Suspense
+
+Note:
+- NOT a data fetching library
+- Way to let React know that something is pending
+
+---
+
+## Who These Are For
 
 - Early Adopters
 - Tinkerers
@@ -22,23 +81,38 @@
 
 ## Opt-In Only
 
-Only exists in experimental builds
+Experimental builds only
 
-Before: `ReactDOM.render(<App />, document.getElementById('root'));`
-After: `ReactDOM.createRoot(document.getElementById('root')).render(<App />);`
+![IMAGE](assets/img/concurrent-mode.png)
 
-Strict Mode **strongy** encouraged
+---
+
+## Opt-In Only
+
+**Before:**
+```
+ReactDOM.render(<App />, document.getElementById('root'));
+```
+
+<small>Strict Mode **strongy** encouraged</small>
+
+---
+
+## Opt-In Only
+
+**After:**
+```
+ReactDOM.createRoot(document.getElementById('root')).render(<App />);
+```
+
+<small>Strict Mode **strongy** encouraged</small>
 
 ---
 
 ## Good News for Chicken Little
 
-- Taking it Slow. introduced in 2018
+- Taking it Slow. Introduced in 2018. React v15 = 3 yrs
 - Collaborative Effort (FB, Google, Next, others)
-
----
-
-## The Future
 
 ---
 
@@ -73,7 +147,7 @@ The Goal: Apps should start fast and stay fast, regardless of device or network 
 
 ---
 
-"In Concurrent Mode, React can work on several state updates concurrently."
+
 
 Notes:
 - Like a long running feature branch
@@ -82,12 +156,6 @@ Notes:
 
 - Interrupt Rendering based on Urgency
 - REnder before data is received, reducing intermediate states
-
----
-
-## Confession
-
-- Standing on the shoulders of giants
 
 ---
 
@@ -149,6 +217,62 @@ const App = () => (
     </>
 );
 ```
+
+---
+
+## How Suspense Works
+
+```js
+let isResolved = false;
+
+const AsyncFetcher = ({ result, ms }) => {
+  if (isResolved === true) {
+    return result;
+  }
+
+  throw new Promise(resolve => 
+    setTimeout(() => {
+      promiseResolved = true;
+      resolve();
+    }, ms)
+  );
+}
+```
+Note:
+- Instead of throwing an error, throw a promise.
+- Allows it to keep coming back until it's ready.
+---
+
+```js
+function ProfilePage() {
+  const [startTransition, isPending] = useTransition({ timeoutMs: 10000 });
+  const [resource, setResource] = useState(initialResource);
+
+  function handleRefreshClick() {
+    startTransition(() => {
+      setResource(fetchProfileData());
+    });
+  }
+
+  return (
+    <Suspense fallback={<h1>Loading profile...</h1>}>
+      <ProfileDetails resource={resource} />
+      <button onClick={handleRefreshClick} disabled={isPending}>
+        {isPending ? "Refreshing..." : "Refresh"}
+      </button>
+
+      <Suspense fallback={<h1>Loading posts...</h1>}>
+        <ProfileTimeline resource={resource} />
+      </Suspense>
+    </Suspense>
+  );
+}
+```
+@[2,3]
+@[4-8]
+@[11,12]
+@[13-15]
+@[17-19]
 
 ---
 
