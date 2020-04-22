@@ -185,8 +185,8 @@ function App() {
 @[3]
 @[7]
 @[8-11]
-@[13]
-@[14] But what about the loading state?
+@[14]
+@[15] But what about the loading state?
 
 Note:
 - This example is from the docs, so if curious, and they provide code-sandbox examples at each stage
