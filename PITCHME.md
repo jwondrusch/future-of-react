@@ -66,7 +66,8 @@ Note:
 
 Note:
 - NOT a data fetching library
-- Way to let React know that something is pending
+- Way for component to let React know that something is pending
+- **Suspending** = the ability for a component let React know that it's waiting. 
 
 ---
 
@@ -94,8 +95,6 @@ Experimental builds only
 ReactDOM.render(<App />, document.getElementById('root'));
 ```
 
-<small>Strict Mode **strongy** encouraged</small>
-
 ---
 
 ## Opt-In Only
@@ -105,22 +104,40 @@ ReactDOM.render(<App />, document.getElementById('root'));
 ReactDOM.createRoot(document.getElementById('root')).render(<App />);
 ```
 
-<small>Strict Mode **strongy** encouraged</small>
+Note:
+- Strict mode strongly encouraged
 
 ---
 
-## Good News for Chicken Little
+## Grokking Concurrent Mode
 
-- Taking it Slow. Introduced in 2018. React v15 = 3 yrs
-- Collaborative Effort (FB, Google, Next, others)
+Note:
+- Helpful to understand the problem it's solving
 
 ---
 
-## The Problem
+## UX Problems
 
-An analogy
+Note:
+- Intermediate states feel like regressing
+- Fail predictably
 
-Notes:
+---
+
+## Technical Problems
+
+Note:
+- With and without Version control in a team as metaphor
+- Rendering pains due to blocking
+- Lead into double buffering
+
+---
+
+## Technical Problems
+
+![IMAGE](assets/img/tearing.png)
+
+Note:
 - Jump out of the web and react world and into the graphics world
 - Let's say you want to render a happy face on the screen. 
 - Your display is constantly reading from your framebuffer - the list of all the data shown on your screen. Individual pixels.
@@ -130,97 +147,72 @@ Notes:
 
 ---
 
-## The Problem
+## To the Rescue
 
-To the web
+![IMAGE](assets/img/cm-steps-simple.png)
 
-- Rendering a UI
-- Need data from multiple places
-
----
-
-The Goal: Apps should start fast and stay fast, regardless of device or network speed
-
----
-
-![IMAGE](assets/img/concurrent-mode.png)
-
----
-
-
-
-Notes:
-- Like a long running feature branch
-
----
-
-- Interrupt Rendering based on Urgency
-- REnder before data is received, reducing intermediate states
-
----
-
-## Better Experiences
-
-- Fewer intermediate states = _feels_ faster
-
----
-
-## What Suspense Is not
-
-- Suspense is not a data fetching library. It’s a mechanism for data fetching libraries to communicate to React that the data a component is reading is not ready yet.
-- It's not a Client
-- 
-
----
-## What Is Suspense
-
-- Integrate deeply w/ React
-- Controls the loading sequence
-
----
-
-A way to tell React that something is pending.
-
----
-
-## Terminology
-
-**Suspending** = the ability for a component let React know that it's waiting. 
+Note:
+- Typing into a filterable list. Used to be solved with debounce
+- Solved by moving rendering to be in memory
 
 ---
 
 ## Example
 
-If a component suspends, React looks up the tree, finds the first suspense
+---
 
-```jsx
-<Suspense fallback="Loading...">
-  <YourComponent />
-</Suspense>
-```
+
 
 ---
 
-```js
-import React, {lazy} from 'react';
-import { fetchData } from './api';
-
-const resource = api.fetchPosts(); // Fetch data
-const Posts = lazy(() => import('./Posts')); // Fetch code
-
-// Render data
-const App = () => (
-    <>
-        <Suspense fallback="Loading...">
-            <Posts resource={resource} />
-        </Suspense>
-    </>
-);
-```
+## Grokking Suspense
 
 ---
 
-## How Suspense Works
+## Dev UX Problems
+
+Note:
+- React is out of the loop on data fetching
+- Leads to extra dev work for you
+
+---
+
+## Technical Problems
+
+![IMAGE](assets/img/loading.gif)
+
+Note:
+- Needs a way to keep checking for the result
+- Race conditions, multiple clicks, the same endpoint returning different results at different times
+
+## Old Fetching Paradigms
+
+- Start Fetching
+- Finish Fetching
+- Start Rendering
+
+---
+
+## Suspense's Paradigm
+
+### Render as you Fetch
+
+---
+
+## Suspense's Paradigm
+
+- Start Fetching
+- Start Rendering
+- Finish Fetching
+- Finish Rendering
+
+Note:
+- Before suspense, you had to set data at the right time
+- With Suspense, you set state immediately, bypassing the issue
+
+---
+
+## Under the Hood
 
 ```js
 let isResolved = false;
@@ -238,20 +230,66 @@ const AsyncFetcher = ({ result, ms }) => {
   );
 }
 ```
+@[1]
+@[4-6]
+@[8-13]
+
 Note:
 - Instead of throwing an error, throw a promise.
 - Allows it to keep coming back until it's ready.
+- Very similar in concept to an Error Boundary. You can think of it as a loading boundary
+
+---
+
+## Example
+
+Note:
+- startTransition tracks the changes under the hood/in the background
+    - Like double buffering
+- isPending lets your app know when to handle the results
+
+---
+
+```js
+import React, {lazy} from 'react';
+import { fetchData } from './api';
+
+const resource = api.fetchPosts();
+const Posts = lazy(() => import('./Posts'));
+
+const App = () => (
+    <>
+        <Suspense fallback="Loading...">
+            <Posts resource={resource} />
+        </Suspense>
+    </>
+);
+```
+@[4] Fetch data
+@[5] Fetch Code
+@[9] Start Rendering
+@[10] Finish Rendering
+
+Note: 
+- When a component suspends, React looks up the tree and finds the first suspense
+- Separates component loading and data loading
+- Data loading can moved to the top level, which means it can be moved almost anywhere
+
+---
+
+## All Together Now
+
 ---
 
 ```js
 function ProfilePage() {
-  const [startTransition, isPending] = useTransition({ timeoutMs: 10000 });
+  const [startTransition, isPending] = useTransition({ 
+      timeoutMs: 10000 
+  });
   const [resource, setResource] = useState(initialResource);
 
   function handleRefreshClick() {
-    startTransition(() => {
-      setResource(fetchProfileData());
-    });
+    startTransition(() => { setResource(fetchProfileData()); });
   }
 
   return (
@@ -268,96 +306,26 @@ function ProfilePage() {
   );
 }
 ```
-@[2,3]
-@[4-8]
-@[11,12]
-@[13-15]
-@[17-19]
+@[2-5]
+@[7-9]
+@[12-13]
+@[14-16]
+@[18-20]
 
+Note: 
+- This example is straight from the docs, recommend reading them.
 ---
 
-## Old School
+## Caveats
 
-```js
-var $theRighAncestor = $('.great-great-grandchild').parents('.the-first-ones');
-```
-
----
-
----
-
-## Old Fetching Paradigms
-
-- Fetch on Render
-- Fetch then Render
-
----
-
-## Old Fetching Paradigms
-
-- Start Fetching
-- Finish Fetching
-- Start Rendering
-
----
-
-## Suspense's Paradigm
-
-- Render as you Fetch
-
----
-
-## Suspense's Paradigm
-
-- Start Fetching
-- Start Rendering
-- Finish Fetching
-- Finish Rendering
-
-## 
-
----
-
-## How?
-
-- Don't wait for component to load to start rendering
-- Fetch code and data in parallel
-
---- 
-
-## Data vs Components
-
-- Understand the React Lifecycle
-- Render when Prop Change
-- Render on State Change
-
----
-
-## Right State, Right Time
-
-- Before suspense, you had to set data at the right time
-- With Suspense, you set state immediately, bypassing the issue
-
----
-
-## Removing Dependencies
-
-- Find the middleground
-- Design your loading states
+- Load Intentionally
+- User Experience First
 
 Notes:
+- Loading boundaries
+- This example is simple, but imagine facebook or a data heavy app. Load regions, rather than individual items, in most cases.
 - Don't wait for everything
 - Don't render everything as soon as it's ready
-
----
-
-## Concurrent Mode & Suspense In Practice
-
-- Think of it like concurrent development on a team
-- useTransition returns `startTransition` (callback, tells React what to defer) and `isPending` (bool, if we're fetching)
-- startTransition tracks the changes under the hood/in the background
-    - Like double buffering
-- isPending lets your app know when to handle the results
 
 ---
 
@@ -365,4 +333,23 @@ Notes:
 
 - GraphQL: relay, react-apollo-hooks
 - Lazy Loading: react.lazy
+- Native: Working!
 - SSR: Experimental libraries
+
+---
+
+### Don't Worry, Chicken Little
+
+- Slow & Deliberate
+- Collaborative Effort 
+
+---
+
+## Questions?
+
+--- 
+
+## Thank You!
+
+### Jonathan Wondrusch
+@jwondrusch
