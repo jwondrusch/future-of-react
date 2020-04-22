@@ -24,7 +24,7 @@ Note:
 
 ## The Real Reason You're Here
 
-### Will I need to rewrite my app... again?
+### App rewrites... again?
 
 ---
 
@@ -109,7 +109,7 @@ Note:
 
 ---
 
-## Grokking Concurrent Mode
+## Grokking **Concurrent Mode**
 
 Note:
 - Helpful to understand the problem it's solving
@@ -161,15 +161,50 @@ Note:
 
 ---
 
+```js
+function App() {
+  const [resource, setResource] = useState(initialResource);
+  const [startTransition, isPending] = useTransition({ timeoutMs: 3000 });
 
+  return (
+    <>
+      <button disabled={isPending} onClick={() => {
+        startTransition(() => {
+          const nextUserId = getNextId(resource.userId);
+          setResource(fetchProfileData(nextUserId));
+        });
+      }}>Next</button>
+
+      {isPending ? " Loading..." : null}
+      <ProfilePage resource={resource} />
+    </>
+  );
+}
+```
+@[2]
+@[3]
+@[7]
+@[8-11]
+@[13]
+@[14] But what about the loading state?
+
+Note:
+- This example is from the docs, so if curious, and they provide code-sandbox examples at each stage
+- startTransition tracks the changes under the hood/in the background
+    - Like double buffering
+- isPending lets your app know when to handle the results
+- If you the resource loading is async, 
 
 ---
 
-## Grokking Suspense
+## Grokking **Suspense**
+
+Note:
+- At it's core, it's all about controlling the transitions.
 
 ---
 
-## Dev UX Problems
+## ~UX~ Dev Problems
 
 Note:
 - React is out of the loop on data fetching
@@ -179,11 +214,13 @@ Note:
 
 ## Technical Problems
 
-![IMAGE](assets/img/loading.gif)
+![width=200, height=200](assets/img/loading.gif)
 
 Note:
 - Needs a way to keep checking for the result
 - Race conditions, multiple clicks, the same endpoint returning different results at different times
+
+---
 
 ## Old Fetching Paradigms
 
@@ -242,11 +279,6 @@ Note:
 ---
 
 ## Example
-
-Note:
-- startTransition tracks the changes under the hood/in the background
-    - Like double buffering
-- isPending lets your app know when to handle the results
 
 ---
 
@@ -321,7 +353,7 @@ Note:
 - Load Intentionally
 - User Experience First
 
-Notes:
+Note:
 - Loading boundaries
 - This example is simple, but imagine facebook or a data heavy app. Load regions, rather than individual items, in most cases.
 - Don't wait for everything
@@ -338,7 +370,7 @@ Notes:
 
 ---
 
-### Don't Worry, Chicken Little
+## **Don't Worry,**<br/> Chicken Little
 
 - Slow & Deliberate
 - Collaborative Effort 
